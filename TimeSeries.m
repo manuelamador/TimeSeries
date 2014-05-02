@@ -1,5 +1,5 @@
 (* ::Package:: *)
-
+ 
 (* Mathematica Package *)
 
 (* :Title: TimeSeries *)
