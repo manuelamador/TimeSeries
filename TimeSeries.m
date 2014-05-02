@@ -28,28 +28,28 @@
 BeginPackage["TimeSeries`"];
 
 listPlotShaded::usage =
-"listPlotShaded[data, shadeareas, options] where data is the time series. shadeareas \
+"listPlotShaded[data, shadeareas, options] where data is the time series; shadeareas \
 is of the form {{date1,date2},{date3, date4},...} representing the time intervals to be \
 shaded. Additional options are ShadeRange -> {smin, smax}, which affects the range to be \
 shaded; ShadeOpacity -> n, which adds opacity to the shade (defaults is 1); and \
 ShadeColor -> color, which changes the color of the Shade (default is LightBlue).";
 
 listLogPlotShaded::usage =
-"listLogPlotShaded[data, shadeareas, options] where data is the time series. shade areas \
+"listLogPlotShaded[data, shadeareas, options] where data is the time series; shadeareas \
 is of the form {{date1,date2},{date3, date4},...} representing the time intervals to be \
 shaded. Additional options are ShadeRange -> {smin, smax}, which affects the range to be \
 shaded; ShadeOpacity -> n, which adds opacity to the shade (defaults is 1); and \
 ShadeColor -> color, which changes the color of the Shade (default is LightBlue).";
 
 dateListPlotShaded::usage =
-"dateListPlotShaded[data, shadeareas, options] where data is the time series. shade areas \
+"dateListPlotShaded[data, shadeareas, options] where data is the time serie; shadeareas \
 is of the form {{date1,date2},{date3, date4},...} representing the time intervals to be \
 shaded. Additional options are ShadeRange -> {smin, smax}, which affects the range to be \
 shaded; ShadeOpacity -> n, which adds opacity to the shade (defaults is 1); and \
 ShadeColor -> color, which changes the color of the Shade (default is LightBlue).";
 
 dateListLogPlotShaded::usage =
-"dateListLogPlotShaded[data, shadeareas, options] where data is the time series. shade areas \
+"dateListLogPlotShaded[data, shadeareas, options] where data is the time series; shadeareas \
 is of the form {{date1,date2},{date3, date4},...} representing the time intervals to be \
 shaded. Additional options are ShadeRange -> {smin, smax}, which affects the range to be \
 shaded; ShadeOpacity -> n, which adds opacity to the shade (defaults is 1); and \
@@ -89,39 +89,43 @@ entered as Mathematica date lists.";
 
 FREDSearch::usage =
 "FREDSearch[query] takes a text query and returns a list of series (including IDs) \
-that matches. Returns a subset of information if  option `ShowAll` is False (default).";
+that matches. Returns a subset of information if  option \"ShowAll\" is False (default).";
 
 initializeWorldBank::usage = 
-"initializeWorldBank[] loads the indicator and country names into memory from the \
-World Bank online database. Need to do this for searching the database.";
+"initializeWorldBank[] loads the indicators and country names into memory from the \
+World Bank online database. Need to do this for searching the database but not for \
+obtaining the data.";
 
 worldBankSearch::usage = 
-"worldBankSearch[query_String, field_String] or worldBankSearch[{queries__String}, field] queries \
-the World Bank indicators for an indicator that contains the query strings. The arg field can \
-take two string values \"name\" or \"all\". A value of \"all\" queries both the name and the source \
-note for a match. A value of \"name\" queries only the name of the indicator.";
+"worldBankSearch[query_String, f_String] or worldBankSearch[{queries__String}, f_] queries \
+the World Bank indicators for an indicator that contains the query strings. The arg f \
+takes one of two possible string values \"name\" or \"all\". A value of \"all\" queries all \
+indicator fields \ for a match. A value of \"name\" queries only the name of the indicator.";
 
 worldBankGetIndicatorInfo::usage= 
-"worldBankGetIndicatorInfo[s_String] returns all the information available about the indicator s.";
+"worldBankGetIndicatorInfo[s_String] returns all the information available about the indicator \
+whose ID is s.";
 
 worldBankFindCountryCode::usage=
-"worldBankFindCountryCode[s_String] returns all two-digit country codes whose country name matches s."; 
+"worldBankFindCountryCode[s_String] returns all two-digit country codes with a country name \
+that matches s."; 
 
 worldBankDataAllCountries::usage=
 "worldBankDataAllCountries[s_String, date_List] finds countries in database with non Missing values \
-for indicator s for period specified in date. It is equivalent to worldBankData[s, \"all\", date] but \
-deletes countries with only missing values.";
+for indicator ID s for the period specified in date = {beginDate_String, endDate_String}. \
+The result is equivalent to calling worldBankData[s, \"all\", date] without countries with \
+only missing values.";
 
 worldBankGetAllCountryCodes::usage=
 "worldBankGetAllCountryCodes[] returns the 2 country codes for all countries in the data set.";
 
 worldBankData::usage=
-"worldBankData[ind_String, n_String, {initDate_String, endDate_String}] gets the time series for \
-indicator ind for country with country code n from initDate to endDate. Note that the dates are \
+"worldBankData[s_String, n_String, {initDate_String, endDate_String}] gets the time series for \
+indicator ID s for country with country code n from initDate to endDate. Note that the dates are \
 strings. The date strings can take the form of \"1990\", \"1990Q1\", \"1990M06\", to get year, \
-quarterly or montly frequencies respectively. The variable ind can be set to \"all\" in which \
-case all countries are queried. The data is returned in a format {\"country\" -> name, \
- \"data\" -> time series}.";
+quarterly or montly frequencies respectively. The arg n can be set to \"all\" in which \
+case all countries are queried for the indicator. The data is returned in a format \
+{\"country\" -> name, \"data\" -> time series} or a corresponding list";
 
 
 Begin["`Private`"];
