@@ -102,6 +102,9 @@ the World Bank indicators for an indicator that contains the query strings. The 
 takes one of two possible string values \"name\" or \"all\". A value of \"all\" queries all \
 indicator fields \ for a match. A value of \"name\" queries only the name of the indicator.";
 
+worldBankSearcher::usage = 
+"worldBankSearcher[] launches a GUI Searcher."
+
 worldBankGetIndicatorInfo::usage= 
 "worldBankGetIndicatorInfo[s_String] returns all the information available about the indicator \
 whose ID is s.";
@@ -125,7 +128,7 @@ indicator ID s for country with country code n from initDate to endDate. Note th
 strings. The date strings can take the form of \"1990\", \"1990Q1\", \"1990M06\", to get year, \
 quarterly or montly frequencies respectively. The arg n can be set to \"all\" in which \
 case all countries are queried for the indicator. The data is returned in a format \
-{\"country\" -> name, \"data\" -> time series} or a corresponding list";
+{\"country\" -> name, \"data\" -> time series} or a corresponding list.";
 
 
 Begin["`Private`"];
@@ -497,6 +500,46 @@ worldBankData[indicator_String, countryCode2_String, {initDate_String, endDate_S
 			If[Length[parsedOutcome]==1, First[parsedOutcome], parsedOutcome]	
 		]
 	];
+
+
+worldBankSearcher[] :=
+        Block[{x},
+              Manipulate[
+                With[{outcome = worldBankSearch[StringSplit[search, ","]]},
+                     If[Length[outcome] > 2,
+                         Column[{
+                                 x = {};
+                                 ListPicker[
+                                        Dynamic[x],
+                                        StringJoin@Riffle[#, ",  "] & /@ Rest@outcome,
+                                         AppearanceElements -> All,
+                                         FieldSize -> {{1, Infinity}, {1, 20}},
+                                         Scrollbars -> True,
+                                         ImageSize -> {Large, Medium}
+                                 ],
+                                 "",
+                                 Button["Copy Selection to Clipboard", 
+                                        CopyToClipboard[StringSplit[#, "," , 2] & /@ x]],
+                                 "",
+                                 "Current selection:",
+                                 Dynamic[If[x == {}, 
+                                            " <None>",
+                                            Column[
+                                                    ((Tooltip[First[#],
+                                                              Last[#]] &
+                                                     ) @ StringSplit[#, ",", 2]) & /@ x
+                                            ]
+                                         ]
+                                 ]
+                         }]
+                         ,
+                         "No matches"]
+                ],
+                {{search, "GDP, current, US$, gross", 
+                  "Search WB (separate by commas):"} , "GDP, current, US", 
+                 InputField[#, String, ContinuousAction -> False] &}
+              ]
+        ];
 
 End[];
 
