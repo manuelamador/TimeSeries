@@ -503,7 +503,7 @@ worldBankData[indicator_String, countryCode2_String, {initDate_String, endDate_S
 
 
 worldBankSearcher[] :=
-        Block[{x},
+        DynamicModule[{x},
               Manipulate[
                 With[{outcome = worldBankSearch[StringSplit[search, ","]]},
                      If[Length[outcome] > 2,
