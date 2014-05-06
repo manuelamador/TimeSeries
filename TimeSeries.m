@@ -422,20 +422,6 @@ worldBankFindCountryCode[query_String]:=
         Select[fromCountryNamesTo2CodeWB, StringMatchQ[#[[1]], 
                         ___ ~~ query ~~ ___, IgnoreCase -> True]&];
 
-worldBankSearch[query_String, field : ("name" | "all")] :=
-        With[{selection = Select[indicatorsWB, 
-                        StringMatchQ[
-                                If[field == "name",  "name" /. #, 
-                                        StringJoin[{"indicator", "name", "sourceNote", "source"} /. #]], 
-                                ___ ~~ query ~~ ___, 
-                                IgnoreCase -> True]& 
-                ]}, 
-                If[selection != {},  
-                        Join[{{"indicator", "name", "source note", "source"}}, 
-                                {"indicator", "name", "sourceNote", "source"} /. selection], 
-                        "Nothing found"]
-        ];
-
 worldBankSearch[{queries__String}, field : ("name" | "all")] := 
         With[{selection = Select[indicatorsWB, 
                         (And@@Table[StringMatchQ[
@@ -450,9 +436,13 @@ worldBankSearch[{queries__String}, field : ("name" | "all")] :=
                         "Nothing found"]
         ];
 
+(* a single string is splitted at the commas *)
+worldBankSearch[query_String, field : ("name" | "all")] :=
+        worldBankSearch[StringTrim /@ StringSplit[query, ","], field];
+
 (* the default is to search all indicator fields *)
 worldBankSearch[query_] := 
-        worldBankSearch[query,"all"];  
+        worldBankSearch[query, "all"];  
 
 ClearAll[myDateList];
 myDateList[date_String] :=
@@ -505,7 +495,7 @@ worldBankData[indicator_String, countryCode2_String, {initDate_String, endDate_S
 worldBankSearcher[] :=
         DynamicModule[{x},
               Manipulate[
-                With[{outcome = worldBankSearch[StringSplit[search, ","]]},
+                With[{outcome = worldBankSearch[search]},
                      If[Length[outcome] > 2,
                          Column[{
                                  x = {};
