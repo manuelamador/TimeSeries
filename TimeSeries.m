@@ -55,6 +55,12 @@ shaded. Additional options are ShadeRange -> {smin, smax}, which affects the ran
 shaded; ShadeOpacity -> n, which adds opacity to the shade (defaults is 1); and \
 ShadeColor -> color, which changes the color of the Shade (default is LightBlue).";
 
+twoAxisDateListPlot::usage =
+"twoAxisDateListPlot[{timeSeries1, timeSeries2}, axis2ticks, {optionsForTS1, \
+optionsForTS2}, generalOptions, hasALegend}] merges two DateListPlots into a single one with \
+two axis. The argument axis2ticks provides the ticks for the second axis. If timeSeries1 \
+will have a legend (as provided in optionsForTS1), then hasLegend must be set to True.";
+
 getNBERRecessionDates::usage =
 "getNBERRecessionDates[] downloads the data of the NBER recessions from FRED. To be used in \
 conjunction with DateListPlotShaded and DateListLogPlotShaded";
@@ -72,6 +78,11 @@ series. It handles missing data (i.e. Missing[]).";
 
 removeMissingDataFromTimeSeries::usage =
 "removeMissingDataFromTimeSeries removes missing data from a time series.";
+
+movingAverageTimeSeries::usage =
+"movingAverageTimeSeries[ts, r, offset: 0] returns a time series with the corresponding \
+moving average. The parameter r controls the length of the average, while offset controls the \
+position of the center point (a value of 0 is a centered moving average).";
 
 initializeFRED::usage = "";
 
@@ -264,12 +275,48 @@ With[{opt = First /@ Options[DateListPlot]},
         ]
 ];
 
+
+ClearAll[twoAxisDateListPlot];
+twoAxisDateListPlot[{timeseries1_, timeseries2_}, axis2ticks_: Automatic,
+    {optionsForPlot1_:{}, optionsForPlot2_:{}}, generalOptions_:{},
+    hasALegend_ : False] :=
+    Module[
+        {
+            fgraph, ggraph, frange, grange, tticks, fticks, gticks
+        },
+        {fgraph, ggraph} = Map[DateListPlot[#[[1]], #1[[2]]] &,
+            {{timeseries1, optionsForPlot1}, {timeseries2, optionsForPlot2}}];
+        {frange, grange} = (PlotRange /. AbsoluteOptions[#, PlotRange])[[2]] & /@ {fgraph, ggraph};
+        fticks=N@FindDivisions[frange,5];
+        gticks = If[axis2ticks === Automatic,
+            Quiet @ Transpose @ {
+                fticks, ToString[NumberForm[#, 2], StandardForm] &
+                    /@ Rescale[fticks, frange, grange]
+            },
+            MapThread[{#2, ToString[NumberForm[#1, 2], StandardForm]} &,
+                {axis2ticks, Rescale[axis2ticks, grange, frange]}]
+        ];
+        Show[
+            fgraph, ggraph /.
+                Graphics[graph_, s___] :> Graphics[GeometricTransformation[graph,
+                    RescalingTransform[{{0, 1}, grange}, {{0, 1}, frange}]], s
+                ],
+            Axes -> False,
+            FrameTicks -> {{fticks, gticks},
+                Options[If[hasALegend, fgraph[[1]], fgraph], FrameTicks][[1, 2, 2]]},
+            generalOptions
+        ]
+    ];
+
+
+(* TIME SERIES *)
+
 removeUnitsInTimeSeries[t_] := 
         QuantityMagnitude[t]; 
 
 mapThreadTimeSeries[f_, ts_]:= 
         Module[{date}, 
-                Rest[
+                First@Rest[
                         Reap[
                                 Apply[Sow[#2, date[#1]]&, ts, {2}], 
                                 Alternatives@@date /@ Intersection @@ ts[[All, All, 1]],
@@ -283,20 +330,28 @@ mapThreadTimeSeries[f_, ts_]:=
 removeMissingDataFromTimeSeries[t_] := 
         DeleteCases[t, {_, _Missing}];
 
+ClearAll[movingAverageTimeSeries];
+movingAverageTimeSeries[ts_, r_, offset_:0] := With[{center = IntegerPart[r / 2]},
+    Transpose[{
+        Take[ts[[All, 1]], {center + offset + 1, - r  + center + offset}],
+        MovingAverage[ts[[All,2]], r]
+    }]
+];
+
+
+(*    FRED  API ACCESS *)
+
 ClearAll[makeQueryString];
 makeQueryString[rules_List]:=
-        Module[{tmp},
-                tmp=rules/.Rule[x_String,y_String]:>StringJoin[x,"=",y];
-                AppendTo[tmp, "file_type=xml"];
-                StringJoin@@(ToLowerCase/@Riffle[tmp,"&"])
-        ];
+    Module[{tmp},
+        tmp=rules/.Rule[x_String,y_String]:>StringJoin[x,"=",y];
+        AppendTo[tmp, "file_type=xml"];
+        StringJoin@@(ToLowerCase/@Riffle[tmp,"&"])
+    ];
 
 ClearAll[stringToNumber];
-stringToNumber[x_String] := 
-        ToExpression[StringReplace[x,","->""]]/.$Failed->Missing[];
-
-
-(*    FRED  API ACCESS *) 
+stringToNumber[x_String] :=
+    ToExpression[StringReplace[x,","->""]]/.$Failed->Missing[];
 
 apiKey = "";
 directory = FileNameTake[$InputFileName, {0, -2}];
@@ -534,6 +589,3 @@ worldBankSearcher[] :=
 End[];
 
 EndPackage[];
-
-
-

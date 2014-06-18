@@ -56,7 +56,7 @@ Get data for an indicator for all countries where data is available:
 	data3 = {{{2011}, 1}, {{2012}, 4 b}, {{2013}, 5 c}};
 	
 	mapThreadTimeSeries[#1 + a #2 + #3 &, {data1, data2, data3}]
-	(* --> {{{{2011}, 3 + 3 a}, {{2012}, 3 + 4 a + 4 b}, {{2013}, Missing[]}}} *)
+	(* --> {{{2011}, 3 + 3 a}, {{2012}, 3 + 4 a + 4 b}, {{2013}, Missing[]}} *)
 	
 	removeMissingDataFromTimeSeries /@ {data1, data2, data3}
 	(* --> {{{{2010}, 1}, {{2011}, 2}, {{2012}, 3}}, {{{2011}, 3}, {{2012}, 
