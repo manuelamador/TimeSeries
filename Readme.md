@@ -1,6 +1,6 @@
 # README #
 
-A collection of useful Mathematica functions to access FRED, access the World Bank online database. It also contains functions to make DateListPlots with shaded regions. It also provides some basic manipulation of time series. 
+A collection of useful Mathematica functions to access FRED, access the World Bank online database. It also contains functions to make DateListPlots with shaded regions and DateListPlots with two vertical axes. It also provides some basic manipulation of time series (mapThread, moving average, and HP filtering). 
 
 To install Mathematica packages see [here](http://support.wolfram.com/kb/5648) and [here](http://mathematica.stackexchange.com/questions/669/how-to-install-packages).
 
@@ -25,6 +25,7 @@ Alternatively, run `saveFREDapikey["apikeyhere"]` to create a text file named "F
 Loads the World Bank indicator and country names:
 
 	initializeWorldBank[]
+	(* this may take a while *)
 
 Find a country code:
 
@@ -33,7 +34,8 @@ Find a country code:
 
 Find an indicator name:
 
-	worldBankSearch[{"GDP", "current US$"}] // Grid [#, Alignment -> Left, Frame -> All] &
+	worldBankSearch[{"GDP", "current US$"}] // Grid [#, 
+	    Alignment -> Left, Frame -> All] &
 	
 Get information about an indicator:
 
@@ -42,14 +44,19 @@ Get information about an indicator:
 Get data for an indicator and a country, using a 2-digit country code:
 
 	worldBankData["NY.GDP.MKTP.CD", "PE", {"1940", "2014"}]
+	(* Note the dates are strings *)
 
 Get data for an indicator for all countries where data is available:
 
 	worldBankDataAllCountries["NY.GDP.MKTP.CD", {"1940", "2014"}]
 
-### Time Series and Shaded ListPlots ###
+The following provides a basic GUI to the search:
 
-#### Example of the Time Series Functions: ####
+    worldBankSearcher[]
+
+### Time Series and Plots ###
+
+#### mapThreadTimeSeries  ####
 
 	data1 = {{{2010}, 1}, {{2011}, 2}, {{2012}, 3}, {{2013}, Missing[]}};
 	data2 = {{{2011}, 3}, {{2012}, 4}, {{2013}, 5}};
@@ -70,17 +77,45 @@ Using mapThreadTimeSeries in a plot:
 	] //DateListPlot[#, PlotLabel -> "External Debt to Output Ratio, Peru",
 			Joined -> True, PlotMarkers -> Automatic] &
 
-![worldbank](readmeimages/worldbank.jpg)
+![WorldBank](readmeimages/worldbank.jpg)
 
-Using HPFilter:
+#### HP Filter ####
+
+Using HP Filter:
 
     With[{dat = Table[Sin[i], {i,100}]+RandomReal[{1, 10}, 100]},
-    ListPlot[{dat, getTrendHPFilter[dat, 100]}, Joined->True, PlotStyle->AbsoluteThickness[2]]]
+        ListPlot[{dat, getTrendHPFilter[dat, 100]}, 
+            Joined->True, 
+            PlotStyle->AbsoluteThickness[2]]
+    ]
  
-![HPfilter](readmeimages/HPfilter.jpg)
+![HP Filter](readmeimages/HPfilter.jpg)
 
-#### Shaded List Plots ####
+#### List Plots with Shaded Regions ####
    
-    dateListPlotShaded[FRED["UNRATE", {{1990}, {2013}}], getNBERRecessionDates[]]
+    dateListPlotShaded[FRED["UNRATE", {{1990}, {2013}}], 
+        getNBERRecessionDates[]]
 
 ![Recessions](readmeimages/recessions.jpg)
+
+#### Moving Average  Function ####
+
+     dateListPlotShaded[
+         movingAverageTimeSeries[FRED["UNRATE", {{1990}, {2013}}], 24], 
+         getNBERRecessionDates[]
+     ]
+
+![Yearly Moving Average](readmeimages/movingaverage.jpg)
+
+#### TwoAxisDateListPlot ####
+
+     twoAxisDateListPlot[{
+             FRED["UNRATE", {{1990}, {2013}}],
+             FRED["GDPC1", {{1990}, {2013}}]
+         },
+         "OptionsForPlot1" -> {Filling -> 0},
+         "OptionsForPlot2" -> {Joined -> True, 
+              PlotStyle -> {Red, Thick}}
+     ]
+
+![Unemployment (left) and GDP (right)](readmeimages/twoaxis.jpg)
