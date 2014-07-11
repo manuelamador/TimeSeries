@@ -149,9 +149,10 @@ case all countries are queried for the indicator. The data is returned in a form
 Begin["`Private`"];
 
 Options[getTrendHPFilter] = {"Logs" -> True};
-getTrendHPFilter[ts_?(ArrayQ[#, 1] &), alpha : _?NumericQ : 1600., OptionsPattern[]] := With[
+getTrendHPFilter[ts_?(ArrayQ[#, 1] &), smooth : _?NumericQ : 1600., OptionsPattern[]] := With[
         {
                 T = Length[ts],
+                alpha = N[smooth],
                 tss = If[TrueQ @ OptionValue["Logs"],
                         Log[N[ts]],
                         N[ts]
