@@ -148,22 +148,46 @@ case all countries are queried for the indicator. The data is returned in a form
 
 Begin["`Private`"];
 
-(* Code below modified from Robert Shimer *)
-getTrendHPFilter[ts_?(ArrayQ[#, 1]&), smooth_?NumericQ] :=
-        With[{T = Length[ts]},
-                Join[
+Options[getTrendHPFilter] = {"Logs" -> True};
+getTrendHPFilter[ts_?(ArrayQ[#, 1] &), alpha_?NumericQ, OptionsPattern[]] := With[
+        {
+                T = Length[ts],
+                tss = If[TrueQ @ OptionValue["Logs"],
+                        Log[N[ts]],
+                        N[ts]
+                ]
+        },
+        With[
+                {
+                        temp = {1 + alpha, -2 alpha, alpha, - 2 alpha,
+                                1 + 5 alpha , -4 alpha, alpha},
+                        init = Flatten[
+                                Join[Table[{i, j}, {j, 2}, {i, 3}], {{{4, 2}}}],
+                                1]
+                },
+                With[
                         {
-                                PadRight[{-1, 2, -1}, T],
-                                PadRight[{2, -5, 4, -1}, T]
+                                end = {T + 1, T + 1} - # & /@ init
                         },
-                        Table[ArrayPad[{-1, 4, -6, 4, -1}, {t, T - t - 5}],
-                                {t, 0, T - 5}],
-                        {
-                                PadLeft[{-1, 4, -5, 2}, T],
-                                PadLeft[{-1, 2, -1}, T]
-                        }
-                ] // Exp[(Inverse[IdentityMatrix[T] - N[smooth] #]).Log[N[ts]]] &
-        ];
+                        LinearSolve[
+                                SparseArray[
+                                        Join[
+                                                {init -> temp},
+                                                Table[
+                                                        Table[
+                                                                {i + j, i + 2},
+                                                                {j, 0, 4}
+                                                        ] -> {alpha , -4 alpha,
+                                                                1 + 6 alpha, - 4 alpha, alpha},
+                                                        {i, T - 4}
+                                                ],
+                                                {end -> temp}
+                                        ]
+                                ],
+                                tss]
+                ]
+        ] // If[TrueQ @ OptionValue["Logs"], Exp[#], #] &
+];
 
 getNBERRecessionDates[] :=
         {First[#][[1]], DatePlus[Last[#][[1]], {1, "Month"}]} & /@
