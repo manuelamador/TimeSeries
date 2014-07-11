@@ -312,7 +312,7 @@ twoAxisDateListPlot[{timeseries1_, timeseries2_},
 
                         With[
                                 {
-                                        axis2ticks = If[axis2ticksOption == Automatic,
+                                        axis2ticks = If[TrueQ[axis2ticksOption == Automatic],
                                                 FindDivisions[grange, 5],
                                                 axis2ticksOption
                                         ]
