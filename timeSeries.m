@@ -502,9 +502,23 @@ FREDSearch[query_, opts : OptionsPattern[]] :=
 
 (*     WORLD BANK API ACCESSS     *)
 
-initializeWorldBank[] := (
+initializeWorldBank[] := Module[{pages}, 
         PrintTemporary["Getting list of indicators and country names from the WB..."];
-        indicatorsWB = Import["http://api.worldbank.org/indicator?per_page=200000", "XML"][[2, 3]];
+		pages = Read[
+			StringToStream[ "pages" /. 
+					Import["http://api.worldbank.org/indicator?per_page=10000", "XML"][[2, 2]]
+			], 
+			Number
+		]; 
+		PrintTemporary["retrieving ", pages, " web pages"]; 
+		indicatorsWB=Flatten[
+			Table[
+				Import["http://api.worldbank.org/indicator?per_page=10000&page=" <> 
+						ToString[page], "XML"][[2, 3]], 
+					{page, {1, pages}}
+			],
+			1
+		]; 
         indicatorsWB = (indicatorsWB //. {
                 XMLElement[{_, "name"}, _, {y_}] :> ("name" -> y),
                 XMLElement[{_, "sourceNote"}, _, {y_}] :> ("sourceNote" -> y) ,
@@ -521,7 +535,7 @@ initializeWorldBank[] := (
                         {___, XMLElement[{_, "iso2Code"}, {}, {code2_}], ___}] :> (code3 -> code2)]
                 //. Reverse /@ fromCountryNamesTo3CodeWB;
         allCountryCodesWB = fromCountryNamesTo2CodeWB /. (_ -> y_) :> y;
-);
+];
 
 worldBankGetAllCountryCodes[] :=
         fromCountryNamesTo2CodeWB;
